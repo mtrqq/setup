@@ -112,6 +112,10 @@ zsh-users/zsh-completions         plugins/zsh-completions
 EOS
 
     sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
+
+    # Set the oh-my-zsh theme to "af-magic"
+    log "Setting oh-my-zsh theme to 'af-magic'... (from default one)"
+    sed -i '' 's/ZSH_THEME="robbyrussell"/ZSH_THEME="af-magic"/' ~/.zshrc
 }
 
 function install_dependencies() {
