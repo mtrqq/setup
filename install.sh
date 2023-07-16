@@ -2,37 +2,6 @@
 
 set -e
 
-if [ "$EUID" -ne 0 ]
-then
-    echo "Installation should only be run with elevated permissions"
-    exit 1
-fi
-
-function prompt {
-    local retries=3
-    local response
-
-    while [[ $retries -gt 0 ]]; do
-        read -p "$1 (y/N): " response
-
-        case "$response" in
-            [Yy])
-                return 0  # true (0) for "yes"
-                ;;
-            [Nn]|"")
-                return 1  # false (1) for "no" or empty input
-                ;;
-            *)
-                ((retries--))
-                echo "Unrecognized input. Please enter 'y' or 'n'. $retries retries left."
-                ;;
-        esac
-    done
-
-    return 1  # If retries are exhausted, return false (1) for "no" or empty input
-}
-
-# Function to check and install an executable
 function install_if_needed {
     local executable_name=$1
     shift
@@ -54,7 +23,7 @@ Before we begin installation, ensure you have the following:
 2. Snapd - refer to https://snapcraft.io/docs/installing-snapd for installation instructions
 EOM
 
-if !prompt "Proceed with the installation?"; then
+if ! prompt "Proceed with the installation?"; then
     echo "Exiting..."
     exit 0
 fi
@@ -75,22 +44,26 @@ Embrace the magic of software! ✨
 EOM
 }
 
+function install_brew() {
+    HOMEBREW_PREFIX="${HOME}/.linuxbrew"
+    if [[ ! -x "${HOMEBREW_PREFIX}/bin/brew" ]]; then
+        git clone "${HOMEBREW_BREW_GIT_REMOTE:-https://github.com/Homebrew/brew}" "${HOME}/.linuxbrew/Homebrew"e
+        mkdir "${HOME}/.linuxbrew/bin"
+    fi
+    eval "$("${HOME}/.linuxbrew/bin/brew" shellenv)"
+    brew update --force --quiet
+}
+
 function install_dependencies() {
     if command -v apt > /dev/null 2>&1; then
-        echo "Updating package list..."
-        apt update
-        echo "Installing required packages..."
+        apt update -y
         apt install -y curl ca-certificates gnupg build-essential
     elif command -v yum > /dev/null 2>&1; then
-        echo "Updating package list..."
         yum update -y
-        echo "Installing required packages..."
         yum install -y curl ca-certificates gnupg
         yum groupinstall -y "Development Tools"
     elif command -v dnf > /dev/null 2>&1; then
-        echo "Updating package list..."
         dnf update -y
-        echo "Installing required packages..."
         dnf install -y curl ca-certificates gnupg
         dnf groupinstall -y "Development Tools"
     else
@@ -100,32 +73,24 @@ function install_dependencies() {
 }
 
 function main() {
-    welcome
+    # welcome
 
     install_dependencies
+
+    install_if_needed "brew" install_brew
 
     install_if_needed "tfswitch" brew install warrensbox/tap/tfswitch
     install_if_needed "pyenv" brew install pyenv
     install_if_needed "goenv" brew install goenv
     install_if_needed "docker" brew install docker
+    install_if_needed "code" brew install --cask visual-studio-code
+    install_if_needed "aws" brew install awscli
+    install_if_needed "k3d" brew install k3d
+    install_if_needed "kubectl" brew install kubernetes-cli
+    install_if_needed "helm" brew install helm
+    install_if_needed "k9s" brew install k9s
 
-    if prompt "Install VS Code?"; then
-        if ! command -v "snap" > /dev/null 2>&1; then
-            echo "Snapd should be installed in order to install VS Code"
-        else
-            snap install --classic code
-         fi
-    fi
-
-    if prompt "Install AWS CLI?"; then
-        brew install awscli
-    fi
-
-    if prompt "Install Kubernetes tooling?"; then
-        brew install k3d kubernetes-cli helm k9s
-    fi
-
-    post_installation
+    # post_installation
 }
 
 main "$@"
