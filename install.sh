@@ -47,7 +47,7 @@ EOM
 function install_brew() {
     HOMEBREW_PREFIX="${HOME}/.linuxbrew"
     if [[ ! -x "${HOMEBREW_PREFIX}/bin/brew" ]]; then
-        git clone "${HOMEBREW_BREW_GIT_REMOTE:-https://github.com/Homebrew/brew}" "${HOME}/.linuxbrew/Homebrew"e
+        git clone "${HOMEBREW_BREW_GIT_REMOTE:-https://github.com/Homebrew/brew}" "${HOME}/.linuxbrew/Homebrew"
         mkdir "${HOME}/.linuxbrew/bin"
     fi
     eval "$("${HOME}/.linuxbrew/bin/brew" shellenv)"
