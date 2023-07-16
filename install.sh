@@ -33,27 +33,28 @@ function install_if_needed {
     fi
 }
 
-function welcome() {
-    log "Before we begin installation, ensure you have the following:"
-    log "1. Brew Package Manager - refer to https://brew.sh/ for installation instructions"
-    log "2. Snapd - refer to https://snapcraft.io/docs/installing-snapd for installation instructions"
+function prompt() {
+    local retries=3
+    local response
 
-    if ! prompt "Proceed with the installation?"; then
-        log "Exiting..."
-        exit 0
-    fi
-}
+    while [[ $retries -gt 0 ]]; do
+        read -p "$1 (y/N): " response
 
-function post_installation() {
-    log "Embrace the magic of software! ✨"
-    log "1. Add to ~/.zshrc or ~/.bashrc:"
-    log "   eval \"\$(pyenv init -)\""
-    log "   eval \"\$(goenv init -)\""
-    log ""
-    log "2. Unleash the power of Docker:"
-    log "   sudo groupadd docker"
-    log "   sudo usermod -aG docker \$USER"
-    log "   newgrp docker"
+        case "$response" in
+            [Yy])
+                return 0  # true (0) for "yes"
+                ;;
+            [Nn]|"")
+                return 1  # false (1) for "no" or empty input
+                ;;
+            *)
+                ((retries--))
+                echo "Unrecognized input. Please enter 'y' or 'n'. $retries retries left."
+                ;;
+        esac
+    done
+
+    return 1  # If retries are exhausted, return false (1) for "no" or empty input
 }
 
 function install_brew() {
@@ -148,9 +149,6 @@ function main() {
     log "Installing dependencies..."
     install_dependencies
 
-    log "Installing zsh..."
-
-
     log "Installing Homebrew..."
     install_if_needed "brew" install_brew
 
@@ -167,6 +165,11 @@ function main() {
     install_if_needed "kubectl" brew install kubernetes-cli
     install_if_needed "helm" brew install helm
     install_if_needed "k9s" brew install k9s
+
+    if prompt "Install Zsh?"; then
+        log "Installing zsh..."
+        install_zsh
+    fi
 
     log "Installation completed."
 }
