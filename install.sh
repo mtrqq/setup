@@ -73,7 +73,7 @@ function install_zsh() {
         zsh "${ZSH}/tools/upgrade.sh" 2>&1
     fi
 
-    sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --skip-chsh
+    sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --skip-chsh || true
 
     # Install Powerlevel10k theme and Zsh plugins
     while read -r repo target; do
