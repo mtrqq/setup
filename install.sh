@@ -126,3 +126,5 @@ function main() {
 
     post_installation
 }
+
+main "$@"
