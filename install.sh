@@ -2,46 +2,58 @@
 
 set -e
 
+# ANSI color escape sequences
+RED='\033[0;31m'
+NC='\033[0m' # No Color
+
+function log() {
+    local timestamp=$(date +"[%Y-%m-%d %H:%M:%S]")
+    echo "$timestamp $1"
+}
+
+function log_warning() {
+    log "${YELLOW}WARNING:${NC} $1"
+}
+
+function log_error() {
+    local timestamp=$(date +"[%Y-%m-%d %H:%M:%S]")
+    echo -e "${RED}${timestamp} ERROR:${NC} $1"
+}
+
 function install_if_needed {
     local executable_name=$1
     shift
     local install_command=$@
 
     if ! command -v "$executable_name" > /dev/null 2>&1; then
-        echo "Installing $executable_name..."
+        log "Installing $executable_name..."
         $install_command
     else
-        echo "$executable_name is already installed, skip installation"
+        log_warning "$executable_name is already installed, skip installation"
     fi
 }
 
 function welcome() {
-    cat << EOM
-Before we begin installation, ensure you have the following:
+    log "Before we begin installation, ensure you have the following:"
+    log "1. Brew Package Manager - refer to https://brew.sh/ for installation instructions"
+    log "2. Snapd - refer to https://snapcraft.io/docs/installing-snapd for installation instructions"
 
-1. Brew Package Manager - refer to https://brew.sh/ for installation instructions
-2. Snapd - refer to https://snapcraft.io/docs/installing-snapd for installation instructions
-EOM
-
-if ! prompt "Proceed with the installation?"; then
-    echo "Exiting..."
-    exit 0
-fi
+    if ! prompt "Proceed with the installation?"; then
+        log "Exiting..."
+        exit 0
+    fi
 }
 
 function post_installation() {
-    cat << EOM
-Embrace the magic of software! ✨
-
-1. Add to ~/.zshrc or ~/.bashrc:
-   eval "\$(pyenv init -)"
-   eval "\$(goenv init -)"
-
-2. Unleash the power of Docker:
-   sudo groupadd docker
-   sudo usermod -aG docker \$USER
-   newgrp docker
-EOM
+    log "Embrace the magic of software! ✨"
+    log "1. Add to ~/.zshrc or ~/.bashrc:"
+    log "   eval \"\$(pyenv init -)\""
+    log "   eval \"\$(goenv init -)\""
+    log ""
+    log "2. Unleash the power of Docker:"
+    log "   sudo groupadd docker"
+    log "   sudo usermod -aG docker \$USER"
+    log "   newgrp docker"
 }
 
 function install_brew() {
@@ -52,13 +64,66 @@ function install_brew() {
         ln -sfn "${HOME}/.linuxbrew/Homebrew/bin/brew" "${HOME}/.linuxbrew/bin"
     fi
     eval "$("${HOME}/.linuxbrew/bin/brew" shellenv)"
+    echo 'eval "$("${HOME}/.linuxbrew/bin/brew" shellenv)"' >> ${HOME}/.zprofile
     brew update --force --quiet
 }
 
 function install_vscode() {
-    wget -q https://packages.microsoft.com/keys/microsoft.asc -O- | sudo apt-key add -
-    sudo add-apt-repository "deb [arch=amd64] https://packages.microsoft.com/repos/vscode stable main"
-    sudo apt install code -y
+    if command -v apt > /dev/null 2>&1; then
+        wget -q https://packages.microsoft.com/keys/microsoft.asc -O- | sudo apt-key add -
+        sudo add-apt-repository "deb [arch=amd64] https://packages.microsoft.com/repos/vscode stable main"
+        sudo apt install code -y
+    elif command -v yum > /dev/null 2>&1; then
+        sudo rpm --import https://packages.microsoft.com/keys/microsoft.asc
+        sudo sh -c 'echo -e "[code]\nname=Visual Studio Code\nbaseurl=https://packages.microsoft.com/yumrepos/vscode\nenabled=1\ngpgcheck=1\ngpgkey=https://packages.microsoft.com/keys/microsoft.asc" > /etc/yum.repos.d/vscode.repo'
+        yum check-update
+        sudo yum install code
+    elif  command -v dnf > /dev/null 2>&1; then
+        sudo rpm --import https://packages.microsoft.com/keys/microsoft.asc
+        sudo sh -c 'echo -e "[code]\nname=Visual Studio Code\nbaseurl=https://packages.microsoft.com/yumrepos/vscode\nenabled=1\ngpgcheck=1\ngpgkey=https://packages.microsoft.com/keys/microsoft.asc" > /etc/yum.repos.d/vscode.repo'
+        dnf check-update
+        sudo dnf install code
+    else
+        log_error "Unsupported package manager. Please install either 'apt', 'yum', or 'dnf'."
+        exit 1
+    fi
+}
+
+function install_zsh() {
+    install_if_needed "zsh" sudo apt install zsh
+
+    if grep -qF '/usr/bin/zsh' /etc/shells; then
+		sudo chsh --shell /usr/bin/zsh ${USER}
+	elif grep -qF '/bin/zsh' /etc/shells; then
+        sudo chsh --shell /bin/zsh ${USER}
+	fi
+
+    # Install Oh-My-Zsh
+    export ZSH="${ZSH:-"${HOME}/.oh-my-zsh"}"
+    export ZSH_CUSTOM="${ZSH_CUSTOM:-"${ZSH}/custom"}"
+    export ZSH_CACHE_DIR="${ZSH_CACHE_DIR:-"${ZSH}/cache"}"
+
+    if [[ -d "${ZSH}/.git" && -f "${ZSH}/tools/upgrade.sh" ]]; then
+        rm -f "${ZSH_CACHE_DIR}/.zsh-update" 2>/dev/null
+        zsh "${ZSH}/tools/check_for_upgrade.sh" 2>/dev/null
+        zsh "${ZSH}/tools/upgrade.sh" 2>&1
+    fi
+
+    # Install Powerlevel10k theme and Zsh plugins
+    while read -r repo target; do
+        if [[ ! -d "${ZSH_CUSTOM}/${target}/.git" ]]; then
+            git clone --depth=1 https://github.com/${repo}.git \"\${ZSH_CUSTOM}/${target}\" 2>&1
+        else
+            git -C \"\${ZSH_CUSTOM}/${target}\" pull --ff-only 2>&1
+        fi
+    done <<EOS
+romkatv/powerlevel10k             themes/powerlevel10k
+zsh-users/zsh-syntax-highlighting plugins/zsh-syntax-highlighting
+zsh-users/zsh-autosuggestions     plugins/zsh-autosuggestions
+zsh-users/zsh-completions         plugins/zsh-completions
+EOS
+
+    sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
 }
 
 function install_dependencies() {
@@ -74,19 +139,25 @@ function install_dependencies() {
         sudo dnf install -y curl ca-certificates gnupg wget
         sudo dnf groupinstall -y "Development Tools"
     else
-        echo "Unsupported package manager. Please install either 'apt', 'yum', or 'dnf'."
+        log_error "Unsupported package manager. Please install either 'apt', 'yum', or 'dnf'."
         exit 1
     fi
 }
 
 function main() {
-    # welcome
-
+    log "Installing dependencies..."
     install_dependencies
 
+    log "Installing zsh..."
+
+
+    log "Installing Homebrew..."
     install_if_needed "brew" install_brew
+
+    log "Installing Visual Studio Code..."
     install_if_needed "code" install_vscode
 
+    log "Installing tools..."
     install_if_needed "tfswitch" brew install warrensbox/tap/tfswitch
     install_if_needed "pyenv" brew install pyenv
     install_if_needed "goenv" brew install goenv
@@ -97,7 +168,7 @@ function main() {
     install_if_needed "helm" brew install helm
     install_if_needed "k9s" brew install k9s
 
-    # post_installation
+    log "Installation completed."
 }
 
 main "$@"
