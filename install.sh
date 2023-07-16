@@ -56,16 +56,16 @@ function install_brew() {
 
 function install_dependencies() {
     if command -v apt > /dev/null 2>&1; then
-        apt update -y
-        apt install -y curl ca-certificates gnupg build-essential
+        sudo apt update -y
+        sudo apt install -y curl ca-certificates gnupg build-essential
     elif command -v yum > /dev/null 2>&1; then
-        yum update -y
-        yum install -y curl ca-certificates gnupg
-        yum groupinstall -y "Development Tools"
+        sudo yum update -y
+        sudo yum install -y curl ca-certificates gnupg
+        sudo yum groupinstall -y "Development Tools"
     elif command -v dnf > /dev/null 2>&1; then
-        dnf update -y
-        dnf install -y curl ca-certificates gnupg
-        dnf groupinstall -y "Development Tools"
+        sudo dnf update -y
+        sudo dnf install -y curl ca-certificates gnupg
+        sudo dnf groupinstall -y "Development Tools"
     else
         echo "Unsupported package manager. Please install either 'apt', 'yum', or 'dnf'."
         exit 1
