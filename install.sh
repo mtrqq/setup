@@ -55,17 +55,23 @@ function install_brew() {
     brew update --force --quiet
 }
 
+function install_vscode() {
+    wget -q https://packages.microsoft.com/keys/microsoft.asc -O- | sudo apt-key add -
+    sudo add-apt-repository "deb [arch=amd64] https://packages.microsoft.com/repos/vscode stable main"
+    sudo apt install code -y
+}
+
 function install_dependencies() {
     if command -v apt > /dev/null 2>&1; then
         sudo apt update -y
-        sudo apt install -y curl ca-certificates gnupg build-essential
+        sudo apt install -y curl ca-certificates gnupg build-essential wget
     elif command -v yum > /dev/null 2>&1; then
         sudo yum update -y
-        sudo yum install -y curl ca-certificates gnupg
+        sudo yum install -y curl ca-certificates gnupg wget
         sudo yum groupinstall -y "Development Tools"
     elif command -v dnf > /dev/null 2>&1; then
         sudo dnf update -y
-        sudo dnf install -y curl ca-certificates gnupg
+        sudo dnf install -y curl ca-certificates gnupg wget
         sudo dnf groupinstall -y "Development Tools"
     else
         echo "Unsupported package manager. Please install either 'apt', 'yum', or 'dnf'."
@@ -79,12 +85,12 @@ function main() {
     install_dependencies
 
     install_if_needed "brew" install_brew
+    install_if_needed "code" install_vscode
 
     install_if_needed "tfswitch" brew install warrensbox/tap/tfswitch
     install_if_needed "pyenv" brew install pyenv
     install_if_needed "goenv" brew install goenv
     install_if_needed "docker" brew install docker
-    install_if_needed "code" brew install --cask visual-studio-code
     install_if_needed "aws" brew install awscli
     install_if_needed "k3d" brew install k3d
     install_if_needed "kubectl" brew install kubernetes-cli
