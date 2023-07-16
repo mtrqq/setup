@@ -73,6 +73,8 @@ function install_zsh() {
         zsh "${ZSH}/tools/upgrade.sh" 2>&1
     fi
 
+    sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --skip-chsh
+
     # Install Powerlevel10k theme and Zsh plugins
     while read -r repo target; do
         if [[ ! -d "${ZSH_CUSTOM}/${target}/.git" ]]; then
@@ -86,8 +88,6 @@ zsh-users/zsh-syntax-highlighting plugins/zsh-syntax-highlighting
 zsh-users/zsh-autosuggestions     plugins/zsh-autosuggestions
 zsh-users/zsh-completions         plugins/zsh-completions
 EOS
-
-    sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
 
     # Set the oh-my-zsh theme to "af-magic"
     log "Setting oh-my-zsh theme to 'af-magic'... (from default one)"
