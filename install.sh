@@ -13,7 +13,7 @@ function install_if_needed {
     local install_command=$@
 
     if ! command -v "$executable_name" > /dev/null 2>&1; then
-        log "Installing $executable_name..."
+        log "Installing $executable_name binary..."
         $install_command
     else
         log "$executable_name is already installed, skip installation"
