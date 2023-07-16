@@ -2,22 +2,9 @@
 
 set -e
 
-# ANSI color escape sequences
-RED='\033[0;31m'
-NC='\033[0m' # No Color
-
 function log() {
     local timestamp=$(date +"[%Y-%m-%d %H:%M:%S]")
     echo "$timestamp $1"
-}
-
-function log_warning() {
-    log "${YELLOW}WARNING:${NC} $1"
-}
-
-function log_error() {
-    local timestamp=$(date +"[%Y-%m-%d %H:%M:%S]")
-    echo -e "${RED}${timestamp} ERROR:${NC} $1"
 }
 
 function install_if_needed {
@@ -29,7 +16,7 @@ function install_if_needed {
         log "Installing $executable_name..."
         $install_command
     else
-        log_warning "$executable_name is already installed, skip installation"
+        log "$executable_name is already installed, skip installation"
     fi
 }
 
@@ -85,7 +72,7 @@ function install_vscode() {
         dnf check-update
         sudo dnf install code
     else
-        log_error "Unsupported package manager. Please install either 'apt', 'yum', or 'dnf'."
+        log "Unsupported package manager. Please install either 'apt', 'yum', or 'dnf'."
         exit 1
     fi
 }
@@ -140,7 +127,7 @@ function install_dependencies() {
         sudo dnf install -y curl ca-certificates gnupg wget
         sudo dnf groupinstall -y "Development Tools"
     else
-        log_error "Unsupported package manager. Please install either 'apt', 'yum', or 'dnf'."
+        log "Unsupported package manager. Please install either 'apt', 'yum', or 'dnf'."
         exit 1
     fi
 }
