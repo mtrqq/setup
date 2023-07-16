@@ -4,7 +4,8 @@ set -e
 
 if [ "$EUID" -ne 0 ]
 then
-    exec sudo -s "$0" "$@"
+    echo "Installation should only be run with elevated permissions"
+    exit 1
 fi
 
 function prompt {
