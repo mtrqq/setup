@@ -78,7 +78,7 @@ function install_vscode() {
 }
 
 function install_zsh() {
-    install_if_needed "zsh" sudo apt install zsh
+    install_if_needed "zsh" sudo apt install zsh -y
 
     if grep -qF '/usr/bin/zsh' /etc/shells; then
 		sudo chsh --shell /usr/bin/zsh ${USER}
