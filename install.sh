@@ -20,30 +20,6 @@ function install_if_needed {
     fi
 }
 
-function prompt() {
-    local retries=3
-    local response
-
-    while [[ $retries -gt 0 ]]; do
-        read -p "$1 (y/N): " response
-
-        case "$response" in
-            [Yy])
-                return 0  # true (0) for "yes"
-                ;;
-            [Nn]|"")
-                return 1  # false (1) for "no" or empty input
-                ;;
-            *)
-                ((retries--))
-                echo "Unrecognized input. Please enter 'y' or 'n'. $retries retries left."
-                ;;
-        esac
-    done
-
-    return 1  # If retries are exhausted, return false (1) for "no" or empty input
-}
-
 function install_brew() {
     HOMEBREW_PREFIX="${HOME}/.linuxbrew"
     if [[ ! -x "${HOMEBREW_PREFIX}/bin/brew" ]]; then
@@ -118,12 +94,6 @@ EOS
     sed -i 's/ZSH_THEME="robbyrussell"/ZSH_THEME="af-magic"/' ${HOME}/.zshrc
     # Setup zsh plugins for tools 
     sed -i '' 's/plugins=(git)/plugins=(git terraform aws kubectl helm)/' ~/.zshrc
-
-    # Add zsh plugins
-    add_zsh_plugin "kubectl"
-    add_zsh_plugin "aws"
-    add_zsh_plugin "helm"
-    add_zsh_plugin "terraform"
 }
 
 function install_dependencies() {
@@ -154,6 +124,9 @@ function main() {
     log "Installing Visual Studio Code..."
     install_if_needed "code" install_vscode
 
+    log "Installing zsh..."
+    install_zsh
+
     log "Installing tools..."
     install_if_needed "tfswitch" brew install warrensbox/tap/tfswitch
     install_if_needed "pyenv" brew install pyenv
@@ -164,11 +137,6 @@ function main() {
     install_if_needed "kubectl" brew install kubernetes-cli
     install_if_needed "helm" brew install helm
     install_if_needed "k9s" brew install k9s
-
-    if prompt "Install Zsh?"; then
-        log "Installing zsh..."
-        install_zsh
-    fi
 
     log "Installation completed."
 }
