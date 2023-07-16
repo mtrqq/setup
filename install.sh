@@ -80,7 +80,7 @@ function install_vscode() {
 add_zsh_plugin() {
     local plugin_name=$1
     if ! grep -q "plugins=.*$plugin_name" ~/.zshrc; then
-        sed -i '' -E 's/(^plugins=\(\")/\1'"$plugin_name"' /' ~/.zshrc
+        sed -i'' -E 's/(^plugins=\([^)]*)/\1 '"$plugin_name"'/' ~/.zshrc
     fi
 }
 
@@ -122,7 +122,7 @@ EOS
 
     # Set the oh-my-zsh theme to "af-magic"
     log "Setting oh-my-zsh theme to 'af-magic'... (from default one)"
-    sed -i '' 's/ZSH_THEME="robbyrussell"/ZSH_THEME="af-magic"/' ~/.zshrc
+    sed -i 's/ZSH_THEME="robbyrussell"/ZSH_THEME="af-magic"/' ${HOME}/.zshrc
 
     # Add zsh plugins
     add_zsh_plugin "kubectl"
