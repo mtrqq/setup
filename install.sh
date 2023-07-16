@@ -100,9 +100,9 @@ function install_zsh() {
     # Install Powerlevel10k theme and Zsh plugins
     while read -r repo target; do
         if [[ ! -d "${ZSH_CUSTOM}/${target}/.git" ]]; then
-            git clone --depth=1 https://github.com/${repo}.git \"\${ZSH_CUSTOM}/${target}\" 2>&1
+            git clone --depth=1 https://github.com/${repo}.git "${ZSH_CUSTOM}/${target}" 2>&1
         else
-            git -C \"\${ZSH_CUSTOM}/${target}\" pull --ff-only 2>&1
+            git -C "${ZSH_CUSTOM}/${target}" pull --ff-only 2>&1
         fi
     done <<EOS
 romkatv/powerlevel10k             themes/powerlevel10k
