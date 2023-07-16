@@ -124,9 +124,6 @@ function main() {
     log "Installing Visual Studio Code..."
     install_if_needed "code" install_vscode
 
-    log "Installing zsh..."
-    install_zsh
-
     log "Installing tools..."
     install_if_needed "tfswitch" brew install warrensbox/tap/tfswitch
     install_if_needed "pyenv" brew install pyenv
@@ -137,6 +134,9 @@ function main() {
     install_if_needed "kubectl" brew install kubernetes-cli
     install_if_needed "helm" brew install helm
     install_if_needed "k9s" brew install k9s
+
+    log "Installing zsh..."
+    install_zsh
 
     log "Installation completed."
 }
