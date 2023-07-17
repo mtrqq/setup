@@ -91,9 +91,9 @@ EOS
 
     # Set the oh-my-zsh theme to "af-magic"
     log "Setting oh-my-zsh theme to 'af-magic'... (from default one)"
-    sed -i 's/ZSH_THEME="robbyrussell"/ZSH_THEME="af-magic"/' ${HOME}/.zshrc
+    sed -i'' 's/ZSH_THEME="robbyrussell"/ZSH_THEME="af-magic"/' ${HOME}/.zshrc
     # Setup zsh plugins for tools 
-    sed -i '' 's/plugins=(git)/plugins=(git terraform aws kubectl helm)/' ~/.zshrc
+    sed -i'' 's/plugins=(git)/plugins=(git terraform aws kubectl helm)/' ~/.zshrc
 }
 
 function install_dependencies() {
